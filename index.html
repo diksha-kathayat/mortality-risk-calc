@@ -26,12 +26,16 @@
       --danger-bg: #fef2f2;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: auto;
+    }
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: var(--bg);
       color: var(--text);
       line-height: 1.4;
-      min-height: 100vh;
+    }
+    body:not(.embed-mode) {
       padding-bottom: 1.5rem;
     }
     .header {
@@ -216,9 +220,41 @@
     }
     .status-msg.error { display: block; background: var(--danger-bg); color: #991b1b; border: 1px solid #fecaca; }
     .status-msg.loading { display: block; background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+    .embed-mode {
+      background: #fff;
+      overflow: hidden;
+    }
     .embed-mode #inputCard,
     .embed-mode .header,
-    .embed-mode .disclaimer { display: none !important; }
+    .embed-mode .disclaimer,
+    .embed-mode .report-header,
+    .embed-mode #statusMsg { display: none !important; }
+    .embed-mode .container {
+      max-width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    .embed-mode #resultsCard {
+      margin: 0;
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+      padding: 0.75rem 0.75rem 0;
+    }
+    .embed-mode #resultsCard h2 {
+      margin-bottom: 0.75rem;
+    }
+    .embed-mode #resultsCard .btn-row {
+      margin-top: 0.75rem;
+      margin-bottom: 0;
+    }
+    .embed-mode .decile-chart {
+      margin-top: 0.75rem;
+      margin-bottom: 0;
+    }
+    .embed-mode .life-exp {
+      margin-top: 0.75rem;
+    }
     @media print {
       body { background: white; color: black; font-size: 11pt; padding: 0; }
       .no-print, .header, #inputCard, .disclaimer, .btn-row, .micro-copy-btn, .status-msg { display: none !important; }
@@ -451,6 +487,17 @@
 
       document.getElementById('resultsCard').classList.add('visible');
       setStatus('', null);
+      syncEmbedHeight();
+    }
+
+    function syncEmbedHeight() {
+      if (!document.body.classList.contains('embed-mode')) return;
+      requestAnimationFrame(() => {
+        const height = Math.ceil(document.documentElement.getBoundingClientRect().height);
+        document.body.style.height = height + 'px';
+        document.documentElement.style.height = height + 'px';
+        window.parent.postMessage({ type: 'mortality-calc-resize', height }, '*');
+      });
     }
 
     async function calculate() {
@@ -553,6 +600,7 @@
         document.body.classList.add('embed-mode');
         setInputs(inputs);
         calculate();
+        window.addEventListener('resize', syncEmbedHeight);
       }
     }
 
