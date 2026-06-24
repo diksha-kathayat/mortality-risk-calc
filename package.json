@@ -1,0 +1,9 @@
+{
+  "name": "mortality-risk-calc",
+  "private": true,
+  "version": "1.0.0",
+  "description": "JR Risk Reduction Registry — server-side COMPASS calculator for WeGuide iframe embedding",
+  "scripts": {
+    "test": "node --test test/model.test.js"
+  }
+}

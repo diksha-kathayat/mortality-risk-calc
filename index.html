@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JR Risk Reduction Registry — COMPASS Calculator</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --navy: #1a2b49;
+      --navy-light: #2c3e6b;
+      --teal: #087e8b;
+      --teal-light: #e6f4f5;
+      --teal-border: #bfe3e7;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --text: #334155;
+      --text-dark: #0f172a;
+      --muted: #64748b;
+      --success: #10b981;
+      --success-bg: #ecfdf5;
+      --warn: #f59e0b;
+      --warn-bg: #fffbeb;
+      --danger: #ef4444;
+      --danger-bg: #fef2f2;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.4;
+      min-height: 100vh;
+      padding-bottom: 1.5rem;
+    }
+    .header {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-bottom: 3px solid var(--teal);
+    }
+    .header h1 { font-size: 1.3rem; font-weight: 700; letter-spacing: -0.02em; }
+    .header p { opacity: 0.85; font-size: 0.85rem; margin-top: 0.15rem; }
+    .container { max-width: 850px; margin: 0 auto; padding: 1rem 1.5rem; }
+    .card {
+      background: var(--card);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 1.25rem;
+      box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+      margin-bottom: 1.25rem;
+    }
+    #inputCard {
+      border-color: #e2e8f0;
+      background-color: #fafafa;
+      padding: 1rem;
+    }
+    #inputCard h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--muted);
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1rem;
+    }
+    #resultsCard {
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      border-left: 5px solid var(--teal);
+    }
+    #resultsCard.visible { display: block; opacity: 1; }
+    #resultsCard h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--navy);
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1.25rem;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+    }
+    @media (max-width: 700px) { .form-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px) { .form-grid { grid-template-columns: 1fr; } }
+    .form-group { margin-bottom: 0.15rem; }
+    label { display: block; font-weight: 600; font-size: 0.8rem; color: var(--text); margin-bottom: 0.25rem; }
+    input, select {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.875rem;
+      color: var(--text-dark);
+      background-color: #ffffff;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--teal);
+      box-shadow: 0 0 0 2px rgba(8, 126, 139, 0.1);
+    }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; justify-content: flex-end; }
+    button {
+      padding: 0.5rem 1.25rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-primary { background: var(--teal); color: white; }
+    .results-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+    @media (max-width: 550px) { .results-grid { grid-template-columns: 1fr; } }
+    .result-box {
+      background: var(--teal-light);
+      border: 1px solid var(--teal-border);
+      border-radius: 8px;
+      padding: 1rem 0.75rem;
+      text-align: center;
+    }
+    .result-box .horizon {
+      font-size: 0.7rem;
+      color: var(--navy-light);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 0.25rem;
+    }
+    .value-action-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 0.4rem;
+    }
+    .result-box .pct { font-size: 1.75rem; font-weight: 800; color: var(--text-dark); letter-spacing: -0.02em; }
+    .micro-copy-btn {
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid var(--border);
+      padding: 4px 6px;
+      border-radius: 4px;
+      color: var(--muted);
+      font-size: 0.75rem;
+      cursor: pointer;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+    .micro-copy-btn:hover { color: var(--teal); background: #ffffff; border-color: var(--teal-border); }
+    .decile-badge {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .decile-low { background: var(--success-bg); color: var(--success); border: 1px solid rgba(16,185,129,0.15); }
+    .decile-mid { background: var(--warn-bg); color: var(--warn); border: 1px solid rgba(245,158,11,0.15); }
+    .decile-high { background: var(--danger-bg); color: var(--danger); border: 1px solid rgba(239,68,68,0.15); }
+    .life-exp {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #f1f5f9;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .life-exp .horizon {
+      font-size: 0.75rem;
+      color: var(--navy-light);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .life-exp .value { font-size: 2rem; font-weight: 800; color: var(--teal); letter-spacing: -0.02em; }
+    .life-exp .hint { margin-bottom: 0.5rem; }
+    .disclaimer {
+      margin-top: 1.25rem;
+      padding: 0.75rem 1rem;
+      background: #fffbeb;
+      border-left: 3px solid #f59e0b;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.8rem;
+      color: #78350f;
+    }
+    .decile-chart { margin-top: 1.25rem; }
+    .decile-bar {
+      display: flex;
+      height: 26px;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .decile-segment { flex: 1; position: relative; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    .decile-segment.active { outline: 3px solid var(--text-dark); outline-offset: -1px; z-index: 1; }
+    .decile-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: var(--muted);
+      font-weight: 500;
+      margin-top: 0.25rem;
+    }
+    .report-header { display: none; }
+    .status-msg {
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
+    .status-msg.error { display: block; background: var(--danger-bg); color: #991b1b; border: 1px solid #fecaca; }
+    .status-msg.loading { display: block; background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+    .embed-mode #inputCard,
+    .embed-mode .header,
+    .embed-mode .disclaimer { display: none !important; }
+    @media print {
+      body { background: white; color: black; font-size: 11pt; padding: 0; }
+      .no-print, .header, #inputCard, .disclaimer, .btn-row, .micro-copy-btn, .status-msg { display: none !important; }
+      #resultsCard { display: block !important; opacity: 1 !important; border: none !important; padding: 0 !important; }
+      .container { max-width: 100%; padding: 0; margin: 0; }
+      .card { border: none; padding: 0; box-shadow: none; }
+      .report-header { display: block; margin-bottom: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header no-print">
+    <h1>JR Risk Reduction Registry</h1>
+    <p>COMPASS / AusRisk surgical mortality risk calculator — for clinical discussion only</p>
+  </div>
+
+  <div class="container">
+    <div class="report-header">
+      <h1>Surgical Mortality Risk Report</h1>
+      <p id="reportMeta"></p>
+    </div>
+
+    <div id="statusMsg" class="status-msg" role="status"></div>
+
+    <div class="card no-print" id="inputCard">
+      <h2>Patient &amp; Surgical Inputs</h2>
+      <form id="calcForm" onsubmit="return false;">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Patient ID / Record <span class="hint">(opt)</span></label>
+            <input type="text" id="recordId" placeholder="WG-12345">
+          </div>
+          <div class="form-group">
+            <label>Age (years)</label>
+            <input type="number" id="age" min="18" max="110" value="60" required>
+          </div>
+          <div class="form-group">
+            <label>Sex</label>
+            <select id="sex">
+              <option value="Male">Male</option>
+              <option value="Not_Male">Female / Not Male</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Cancer History</label>
+            <select id="cancer">
+              <option value="No">No</option>
+              <option value="Yes">Yes</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>ASA Status</label>
+            <select id="asa">
+              <option value="1-2">1–2</option>
+              <option value="3">3</option>
+              <option value="4-5" selected>4–5</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Urgency</label>
+            <select id="urgency">
+              <option value="Elective" selected>Elective</option>
+              <option value="Urgent">Urgent (emergency)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Surgical Specialty</label>
+            <select id="specialty">
+              <option value="Reference">Reference (general)</option>
+              <option value="GI Tract" selected>GI Tract</option>
+              <option value="Neurosurgery">Neurosurgery</option>
+              <option value="Orthopaedic">Orthopaedic</option>
+              <option value="Urology">Urology</option>
+              <option value="Vascular">Vascular</option>
+              <option value="Cardiothoracic">Cardiothoracic</option>
+              <option value="Gynaecology">Gynaecology</option>
+              <option value="ENT">ENT</option>
+              <option value="Plastic">Plastic / Reconstructive</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Surgical Grade</label>
+            <select id="grade">
+              <option value="Minor">Minor</option>
+              <option value="Intermediate">Intermediate</option>
+              <option value="Major" selected>Major</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Hospital / Site</label>
+            <input type="text" id="hospital" placeholder="Cabrini Hospital">
+          </div>
+          <div class="form-group">
+            <label>Surgery Date</label>
+            <input type="date" id="surgeryDate">
+          </div>
+        </div>
+      </form>
+      <div class="btn-row">
+        <button class="btn-primary" type="button" onclick="calculate()">Calculate Risk</button>
+      </div>
+    </div>
+
+    <div class="card" id="resultsCard">
+      <h2>Risk Analysis Results</h2>
+      <div class="results-grid">
+        <div class="result-box">
+          <div class="horizon">30-Day Mortality</div>
+          <div class="value-action-row">
+            <span class="pct" id="m30pct">—</span>
+            <button class="micro-copy-btn no-print" title="Copy Metric" onclick="copySingleMetric('30-Day Mortality', 'm30pct', 'm30decile', this)">
+              copy <i class="fa-regular fa-copy"></i>
+            </button>
+          </div>
+          <span class="decile-badge" id="m30decile">Decile —</span>
+        </div>
+        <div class="result-box">
+          <div class="horizon">1-Year Mortality</div>
+          <div class="value-action-row">
+            <span class="pct" id="m1ypct">—</span>
+            <button class="micro-copy-btn no-print" title="Copy Metric" onclick="copySingleMetric('1-Year Mortality', 'm1ypct', 'm1ydecile', this)">
+              copy <i class="fa-regular fa-copy"></i>
+            </button>
+          </div>
+          <span class="decile-badge" id="m1ydecile">Decile —</span>
+        </div>
+        <div class="result-box">
+          <div class="horizon">2-Year Mortality</div>
+          <div class="value-action-row">
+            <span class="pct" id="m2ypct">—</span>
+            <button class="micro-copy-btn no-print" title="Copy Metric" onclick="copySingleMetric('2-Year Mortality', 'm2ypct', 'm2ydecile', this)">
+              copy <i class="fa-regular fa-copy"></i>
+            </button>
+          </div>
+          <span class="decile-badge" id="m2ydecile">Decile —</span>
+        </div>
+      </div>
+      <div class="life-exp">
+        <div class="horizon">Remaining Life Expectancy</div>
+        <div class="value-action-row">
+          <span class="value" id="lifeExp">—</span>
+          <button class="micro-copy-btn no-print" title="Copy Metric" onclick="copySingleMetric('Remaining Life Expectancy', 'lifeExp', null, this)">
+            copy <i class="fa-regular fa-copy"></i>
+          </button>
+        </div>
+        <div class="hint">years (Based on Australian standard life tables)</div>
+      </div>
+      <div class="decile-chart">
+        <p style="font-size:0.8rem;color:var(--muted);margin-bottom:0.4rem;font-weight:600;">Population Comparison (30-day decile)</p>
+        <div class="decile-bar" id="decileBar"></div>
+        <div class="decile-labels"><span>Lowest Risk</span><span>Highest Risk</span></div>
+      </div>
+      <div class="btn-row no-print">
+        <button class="btn-primary" type="button" onclick="window.print()">Print Report</button>
+      </div>
+    </div>
+
+    <div class="disclaimer no-print">
+      This report supports clinical discussion and should be interpreted alongside clinical judgement.
+      Model: <span id="modelVersion">—</span>.
+    </div>
+  </div>
+
+  <script>
+    const API_URL = '/api/calculate';
+    const DECILE_COLORS = ['#e2f0d9','#dcedc8','#f0f4c3','#fff9c4','#ffecb3','#ffe0b2','#ffcc80','#ffab91','#fce4d6','#ef9a9a'];
+
+    function setStatus(message, type) {
+      const el = document.getElementById('statusMsg');
+      el.className = 'status-msg' + (type ? ' ' + type : '');
+      el.textContent = message || '';
+      el.style.display = message ? 'block' : 'none';
+    }
+
+    function getInputs() {
+      return {
+        recordId: document.getElementById('recordId').value.trim(),
+        age: parseInt(document.getElementById('age').value, 10),
+        sex: document.getElementById('sex').value,
+        cancer: document.getElementById('cancer').value,
+        asa: document.getElementById('asa').value,
+        urgency: document.getElementById('urgency').value,
+        specialty: document.getElementById('specialty').value,
+        grade: document.getElementById('grade').value,
+        hospital: document.getElementById('hospital').value.trim(),
+        surgeryDate: document.getElementById('surgeryDate').value
+      };
+    }
+
+    function setInputs(inputs) {
+      if (inputs.recordId) document.getElementById('recordId').value = inputs.recordId;
+      if (inputs.age) document.getElementById('age').value = inputs.age;
+      if (inputs.sex) document.getElementById('sex').value = inputs.sex;
+      if (inputs.cancer) document.getElementById('cancer').value = inputs.cancer;
+      if (inputs.asa) document.getElementById('asa').value = inputs.asa;
+      if (inputs.urgency) document.getElementById('urgency').value = inputs.urgency;
+      if (inputs.specialty) document.getElementById('specialty').value = inputs.specialty;
+      if (inputs.grade) document.getElementById('grade').value = inputs.grade;
+      if (inputs.hospital) document.getElementById('hospital').value = inputs.hospital;
+      if (inputs.surgeryDate) document.getElementById('surgeryDate').value = inputs.surgeryDate;
+    }
+
+    function renderResults(payload) {
+      const { results, modelVersion } = payload;
+
+      document.getElementById('modelVersion').textContent = modelVersion;
+      document.getElementById('m30pct').textContent = results.m30.pctFormatted;
+      document.getElementById('m1ypct').textContent = results.m1y.pctFormatted;
+      document.getElementById('m2ypct').textContent = results.m2y.pctFormatted;
+
+      ['m30', 'm1y', 'm2y'].forEach((h) => {
+        const el = document.getElementById(h + 'decile');
+        const d = results[h].decile;
+        el.textContent = 'Decile ' + d;
+        el.className = 'decile-badge ' + results[h].decileClass;
+      });
+
+      document.getElementById('lifeExp').textContent = results.lifeExpectancy;
+      document.getElementById('reportMeta').textContent = results.reportMeta;
+
+      const bar = document.getElementById('decileBar');
+      bar.innerHTML = '';
+      for (let i = 1; i <= 10; i++) {
+        const seg = document.createElement('div');
+        seg.className = 'decile-segment d-seg-' + i + (i === results.activeDecile ? ' active' : '');
+        seg.style.backgroundColor = DECILE_COLORS[i - 1];
+        seg.title = 'Decile ' + i;
+        bar.appendChild(seg);
+      }
+
+      document.getElementById('resultsCard').classList.add('visible');
+      setStatus('', null);
+    }
+
+    async function calculate() {
+      const inputs = getInputs();
+      if (!inputs.age || inputs.age < 18) {
+        setStatus('Please enter a valid age (18+).', 'error');
+        return null;
+      }
+
+      setStatus('Calculating risk…', 'loading');
+
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(inputs)
+        });
+
+        const payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload.error || 'Calculation failed');
+        }
+
+        renderResults(payload);
+        return payload;
+      } catch (err) {
+        setStatus(err.message || 'Unable to calculate risk. Please try again.', 'error');
+        return null;
+      }
+    }
+
+    function copySingleMetric(label, valElementId, decileElementId, btnElement) {
+      const valText = document.getElementById(valElementId).textContent;
+      if (valText === '—') return;
+
+      let textToCopy = valText;
+      if (decileElementId) {
+        textToCopy += ' (' + document.getElementById(decileElementId).textContent + ')';
+      }
+
+      const tempTextArea = document.createElement('textarea');
+      tempTextArea.value = textToCopy;
+      tempTextArea.style.position = 'fixed';
+      tempTextArea.style.opacity = '0';
+      document.body.appendChild(tempTextArea);
+      tempTextArea.select();
+
+      try {
+        if (document.execCommand('copy')) {
+          btnElement.innerHTML = 'copied <i class="fa-solid fa-check"></i>';
+          setTimeout(() => {
+            btnElement.innerHTML = 'copy <i class="fa-regular fa-copy"></i>';
+          }, 2000);
+        }
+      } catch (err) {
+        console.error('Copy failed', err);
+      }
+
+      document.body.removeChild(tempTextArea);
+    }
+
+    function formatToISODate(dateStr) {
+      if (!dateStr) return '';
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+      const parsed = Date.parse(dateStr);
+      return !isNaN(parsed) ? new Date(parsed).toISOString().slice(0, 10) : '';
+    }
+
+    function matchSelectOption(selectId, incomingValue) {
+      if (!incomingValue) return null;
+      const selectEl = document.getElementById(selectId);
+      if (!selectEl) return null;
+      const cleanStr = (val) => String(val).toLowerCase().replace(/[^a-z0-9]/g, '');
+      const target = cleanStr(incomingValue);
+      for (const option of selectEl.options) {
+        if (cleanStr(option.value) === target || cleanStr(option.text) === target) {
+          return option.value;
+        }
+      }
+      return null;
+    }
+
+    function loadFromUrl() {
+      const p = new URLSearchParams(location.search);
+      const inputs = {};
+      ['recordId', 'age', 'sex', 'cancer', 'asa', 'urgency', 'specialty', 'grade', 'hospital', 'surgeryDate'].forEach((k) => {
+        if (p.has(k)) inputs[k] = p.get(k);
+      });
+
+      if (inputs.age) inputs.age = parseInt(inputs.age, 10);
+      if (inputs.surgeryDate) inputs.surgeryDate = formatToISODate(inputs.surgeryDate);
+      if (inputs.specialty) inputs.specialty = matchSelectOption('specialty', inputs.specialty) || inputs.specialty;
+      if (inputs.sex) inputs.sex = matchSelectOption('sex', inputs.sex) || inputs.sex;
+      if (inputs.cancer) inputs.cancer = matchSelectOption('cancer', inputs.cancer) || inputs.cancer;
+      if (inputs.asa) inputs.asa = matchSelectOption('asa', inputs.asa) || inputs.asa;
+      if (inputs.urgency) inputs.urgency = matchSelectOption('urgency', inputs.urgency) || inputs.urgency;
+      if (inputs.grade) inputs.grade = matchSelectOption('grade', inputs.grade) || inputs.grade;
+
+      if (Object.keys(inputs).length) {
+        document.body.classList.add('embed-mode');
+        setInputs(inputs);
+        calculate();
+      }
+    }
+
+    if (!document.getElementById('surgeryDate').value) {
+      document.getElementById('surgeryDate').value = new Date().toISOString().slice(0, 10);
+    }
+
+    loadFromUrl();
+  </script>
+</body>
+</html>
